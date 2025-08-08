@@ -1,0 +1,6 @@
+.env
+./infrastructure/.env
+/data
+__pycache__
+.vscode
+/Pipfile.lock

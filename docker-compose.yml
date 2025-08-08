@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  axelar-wallet-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: axelar-wallet-monitor:latest
+    container_name: axelar-wallet-monitor
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    environment:
+      - AXELAR_WALLET=${AXELAR_WALLET}
+      - AXELAR_LCD=${AXELAR_LCD:-https://lcd-axelar.imperator.co:443}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - POLL_INTERVAL=${POLL_INTERVAL:-60}

@@ -17,5 +17,7 @@ COPY app/ /app/
 # Create data directory for volume mount
 RUN mkdir -p /app/data
 
+EXPOSE 8080
+
 ENTRYPOINT ["python", "/app/main.py"]
 

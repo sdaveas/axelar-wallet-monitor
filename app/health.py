@@ -4,10 +4,9 @@ import json
 import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from datetime import datetime
-import logging
+from .logger import setup_logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 HEALTH_PORT = int(os.getenv("HEALTH_PORT"))
 if not HEALTH_PORT:

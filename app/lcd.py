@@ -2,11 +2,10 @@ import requests
 import backoff
 import sys
 import os
-import logging
 from typing import Dict, Any, List, Optional, Tuple
+from .logger import setup_logger
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = setup_logger(__name__)
 
 AXELAR_LCD = os.getenv("AXELAR_LCD")
 if not AXELAR_LCD:

@@ -8,7 +8,7 @@ from logger import setup_logger
 
 logger = setup_logger(__name__)
 
-HEALTH_PORT = int(os.getenv("HEALTH_PORT"))
+HEALTH_PORT = int(os.getenv("HEALTH_PORT", 8080))
 if not HEALTH_PORT:
     logger.error("Set HEALTH_PORT to a valid port")
     sys.exit(1)

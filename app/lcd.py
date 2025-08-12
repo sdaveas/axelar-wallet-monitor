@@ -51,15 +51,21 @@ def _fetch_txs_for_events(events: List[str], page_limit: int = 50, limit_pages: 
     return results
 
 
-def page_through_txs_or(clauses: List[str], start_height: Optional[int], page_limit: int = 50, limit_pages: int = 3) -> List[Dict[str, Any]]:
+def page_through_txs_or(clauses: List[str], start_height: Optional[int], end_height: Optional[int] = None, page_limit: int = 50, limit_pages: int = 3) -> List[Dict[str, Any]]:
     # Simulate OR across different event clauses by issuing separate queries and merging results
     seen_hashes: set[str] = set()
     merged: List[Dict[str, Any]] = []
-    height_ev = f"tx.height>={start_height}" if start_height else None
+    
+    # Build height filters
+    height_filters = []
+    if start_height:
+        height_filters.append(f"tx.height>={start_height}")
+    if end_height:
+        height_filters.append(f"tx.height<={end_height}")
+    
     for clause in clauses:
         evs = [clause]
-        if height_ev:
-            evs.append(height_ev)
+        evs.extend(height_filters)
         txs = _fetch_txs_for_events(evs, page_limit=page_limit, limit_pages=limit_pages)
         for tx in txs:
             h = tx.get("txhash")

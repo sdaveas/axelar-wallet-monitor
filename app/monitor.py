@@ -3,7 +3,7 @@ import os
 import sys
 import time
 from alert import tg_send 
-from data import get_height, update_height
+from data import update_height, get_latest_height_from_chain, read_height_from_file
 from dotenv import load_dotenv
 from lcd import page_through_txs_or, build_event_clauses
 from utils import create_mintscan_url
@@ -21,14 +21,18 @@ if not WALLET_ADDRESS:
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "60"))
 
 def monitor_loop():
-    height = get_height()
+    old_height = read_height_from_file()
+    new_height = get_latest_height_from_chain()
 
-    logger.info(f"Monitoring {WALLET_ADDRESS} on Axelar. Starting from height: {height}")
+    logger.info(f"Monitoring {WALLET_ADDRESS} on Axelar. Starting from height: {old_height}")
 
     while True:
         try:
             clauses = build_event_clauses(WALLET_ADDRESS)
-            txs = page_through_txs_or(clauses, start_height=height, page_limit=1, limit_pages=1)
+
+            logger.debug(f"Built event clauses: {clauses} - from {old_height} to {new_height}")
+
+            txs = page_through_txs_or(clauses, start_height=old_height, end_height=new_height, page_limit=1, limit_pages=1)
             txs.sort(key=lambda t: int(t.get("height", 0)))
             for tx in txs:
                 txhash = tx.get("txhash")
@@ -37,6 +41,12 @@ def monitor_loop():
         except Exception as e:
             logger.error(f"poll error: {e}")
 
+        new_height += 1
+        update_height(new_height)
+        logger.info(f"Updating height storage: {new_height}")
+
+        old_height = new_height
+        new_height = get_latest_height_from_chain()
+
         time.sleep(POLL_INTERVAL)
-        height = update_height()
-        logger.info(f"Updated height: {height}")
+

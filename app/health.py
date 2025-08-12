@@ -4,7 +4,7 @@ import json
 import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from datetime import datetime
-from .logger import setup_logger
+from logger import setup_logger
 
 logger = setup_logger(__name__)
 

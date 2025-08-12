@@ -1,7 +1,7 @@
 import os
 import sys
 import requests
-from .logger import setup_logger
+from logger import setup_logger
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")

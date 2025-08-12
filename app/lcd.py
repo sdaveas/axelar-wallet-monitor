@@ -3,7 +3,7 @@ import backoff
 import sys
 import os
 from typing import Dict, Any, List, Optional, Tuple
-from .logger import setup_logger
+from logger import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -7,7 +7,7 @@ from data import get_height, update_height
 from dotenv import load_dotenv
 from lcd import page_through_txs_or, build_event_clauses
 from utils import create_mintscan_url
-from .logger import setup_logger
+from logger import setup_logger
 
 logger = setup_logger(__name__)
 

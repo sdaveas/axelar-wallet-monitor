@@ -1,6 +1,27 @@
 # Axelar Wallet Monitor
 
-A lightweight Python service that monitors an Axelar wallet for activity and sends alerts to Telegram.
+A lightweight Python service that monitors an Axelar wallet for## Docker Compose
+
+For easier deployment, use Docker Comp## Notes
+
+- Uses `/cosmos/tx/v1beta1/txs` LCD endpoint with an events query. Adjust the query in `build_event_clauses` if you want to narrow/broaden matches.
+- Basic de-duplication by txhash. Height is persisted in `data/height.txt` for resuming after restarts.
+- For production, consider running behind a process manager (Docker restart policy, systemd, k8s) and add observability.
+- Transaction details are sent as Mintscan URLs for easy blockchain exploration.
+- The health check service runs in a separate thread within the main application process.
+- Health service runs on port 8080 by default (configurable via `HEALTH_PORT` environment variable).
+- Support for both minimum (`tx.height>=`) and maximum (`tx.height<=`) height filtering in LCD queries.`bash
+# Set environment variables in .env file or export them
+export AXELAR_WALLET=axelar1...
+export TELEGRAM_BOT_TOKEN={{TELEGRAM_BOT_TOKEN}}
+export TELEGRAM_CHAT_ID={{TELEGRAM_CHAT_ID}}
+export HEALTH_PORT=8080
+
+# Run with Docker Compose
+docker-compose up -d
+```
+
+This will start the service with both monitoring and health check functionality. The health endpoint will be available on the configured port (default 8080), and the service will persist height data in the `./data` directory. alerts to Telegram.
 
 Monitors:
 - Incoming/outgoing bank transfers
@@ -21,7 +42,7 @@ Environment variables:
 
 ## Health Check
 
-The project includes a separate health check service that exposes an endpoint at `/health` on port 8080 (configurable via `HEALTH_PORT`).
+The service includes an integrated health check endpoint at `/health` on port 8080 (configurable via `HEALTH_PORT`).
 
 Example response:
 ```json
@@ -39,11 +60,7 @@ You can test it locally with:
 curl http://localhost:8080/health
 ```
 
-### Running the health service standalone
-
-```bash
-python app/health_service.py
-```
+The health check service runs in a separate thread alongside the main monitoring service.
 
 ## Run locally
 
@@ -68,39 +85,27 @@ If you don't set `TELEGRAM_BOT_TOKEN`, messages print to stdout.
 
 ## Docker
 
-Build the main monitoring service:
+Build the image (includes both monitoring and health services):
 
 ```bash
 docker build -t axelar-wallet-monitor .
 ```
 
-Build the health service:
+Run with Docker:
 
 ```bash
-docker build -f Dockerfile.health -t axelar-wallet-monitor-health .
-```
-
-Run the main service with Docker:
-
-```bash
-docker run --rm \
-  -v $(pwd)/data:/app/data \
-  -e AXELAR_WALLET=axelar1... \
-  -e TELEGRAM_BOT_TOKEN={{TELEGRAM_BOT_TOKEN}} \
-  -e TELEGRAM_CHAT_ID={{TELEGRAM_CHAT_ID}} \
-  -e POLL_INTERVAL=15 \
+docker run --rm 
+  -p 8080:8080 
+  -v $(pwd)/data:/app/data 
+  -e AXELAR_WALLET=axelar1... 
+  -e TELEGRAM_BOT_TOKEN={{TELEGRAM_BOT_TOKEN}} 
+  -e TELEGRAM_CHAT_ID={{TELEGRAM_CHAT_ID}} 
+  -e POLL_INTERVAL=15 
+  -e HEALTH_PORT=8080 
   axelar-wallet-monitor
 ```
 
-Run the health service:
-
-```bash
-docker run --rm \
-  -p 8080:8080 \
-  -e AXELAR_WALLET=axelar1... \
-  -e HEALTH_PORT=8080 \
-  axelar-wallet-monitor-health
-```
+This runs both the monitoring service and health check endpoint in the same container.
 
 ## Docker Compose
 
@@ -126,20 +131,20 @@ Both services will automatically restart unless stopped, and the monitoring serv
 
 ```
 ├── app/
-│   ├── main.py           # Entry point for monitoring service
+│   ├── main.py           # Entry point - starts both monitoring and health services
 │   ├── monitor.py        # Main monitoring loop
+│   ├── health.py         # Integrated health check service
 │   ├── lcd.py            # LCD API interactions
 │   ├── alert.py          # Telegram bot functionality
 │   ├── data.py           # Height persistence
 │   ├── utils.py          # Utility functions
-│   └── health_service.py # Standalone health check service
+│   └── logger.py         # Logging configuration
 ├── data/
 │   └── height.txt        # Persisted block height
 ├── infrastructure/
 │   └── google_cloud.sh   # Google Cloud deployment script
-├── docker-compose.yml    # Docker Compose for both services
-├── Dockerfile            # Docker build for monitoring service
-├── Dockerfile.health     # Docker build for health service
+├── docker-compose.yml    # Docker Compose configuration
+├── Dockerfile            # Docker build configuration
 ├── requirements.txt      # Python dependencies
 └── README.md            # This file
 ```
